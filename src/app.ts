@@ -21,3 +21,5 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/docs', swaggerServe, swaggerPage);
 app.use((_req, _res, next) => next(new HttpError(404, 'Route not found')));
 app.use(errorHandler);
+
+export default app;

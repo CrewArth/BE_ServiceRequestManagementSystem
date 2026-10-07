@@ -5,8 +5,8 @@ import { userRepository } from '../repositories/user.repository';
 import { disconnectDatabase } from '../repositories/database';
 
 async function seedAdmin() {
-  const email = "admin@yopmail.com"
-  const password = "admin@123";
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
   if (!email || !password || password.length < 8) {
     throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD (at least 8 characters).');
   }

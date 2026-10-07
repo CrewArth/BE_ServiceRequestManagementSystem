@@ -25,7 +25,7 @@ const body = (schema: object) => ({
 export const openApi = {
   openapi: "3.0.3",
   info: { title: "Service Request API", version: "1.0.0" },
-  servers: [{ url: "http://localhost:4000" }],
+  servers: [{ url: "/" }],
   components: {
     securitySchemes: {
       bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
