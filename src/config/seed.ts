@@ -4,8 +4,8 @@ import { prisma } from './database';
 import { ROLES } from '../constants/roles';
 
 async function seedAdmin() {
-  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  const password = process.env.ADMIN_PASSWORD;
+  const email = "admin@yopmail.com"
+  const password = "admin@123";
   if (!email || !password || password.length < 8) {
     throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD (at least 8 characters).');
   }

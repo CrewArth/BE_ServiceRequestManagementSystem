@@ -1,13 +1,12 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { prisma } from '../../config/database';
-import { jwtSecret } from '../../config/env';
 import { ROLES } from '../../constants/roles';
 import { HttpError } from '../../middleware/error/error-handler';
+import { createToken } from '../../utils/jwt';
 import { registerSchema, loginSchema } from '../../validation/auth/auth.validation';
 
 function session(user: { id: string; name: string; email: string; role: typeof ROLES[keyof typeof ROLES] }) {
-  return { token: jwt.sign({ sub: user.id }, jwtSecret(), { expiresIn: '8h' }), user };
+  return { token: createToken(user.id), user };
 }
 
 export async function registerEmployee(rawInput: unknown) {

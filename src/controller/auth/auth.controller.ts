@@ -3,7 +3,6 @@ import { registerEmployee, loginUser } from '../../business-logic/auth/auth';
 
 export const register: RequestHandler = async (req, res) => {
   const input = req.body;
-  const {name, email, password } = req.body;
   const result = await registerEmployee(input);
   res.status(201).json(result);
 };
