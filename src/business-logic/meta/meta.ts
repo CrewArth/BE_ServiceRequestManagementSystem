@@ -1,4 +1,4 @@
-import { Category, Priority, RequestStatus } from '@prisma/client';
+import { Category, Priority, RequestStatus } from '../../constants/service-request';
 
 export function getRequestMeta() {
   return {

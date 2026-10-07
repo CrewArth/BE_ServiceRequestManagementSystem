@@ -1,3 +1,3 @@
-import type { User } from '@prisma/client';
+import type { Role } from '../../constants/roles';
 
-export type Actor = Pick<User, 'id' | 'role'>;
+export type Actor = { id: string; role: Role };

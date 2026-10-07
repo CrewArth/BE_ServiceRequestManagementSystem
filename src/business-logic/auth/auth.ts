@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../config/database';
 import { ROLES } from '../../constants/roles';
 import { HttpError } from '../../middleware/error/error-handler';
+import { userRepository } from '../../repositories/user.repository';
 import { createToken } from '../../utils/jwt';
 import { registerSchema, loginSchema } from '../../validation/auth/auth.validation';
 
@@ -12,16 +12,17 @@ function session(user: { id: string; name: string; email: string; role: typeof R
 export async function registerEmployee(rawInput: unknown) {
   const input = registerSchema.parse(rawInput);
   const { password, ...fields } = input;
-  const user = await prisma.user.create({
-    data: { ...fields, passwordHash: await bcrypt.hash(password, 12), role: ROLES.EMPLOYEE },
-    select: { id: true, name: true, email: true, role: true },
+  const user = await userRepository.create({
+    ...fields,
+    passwordHash: await bcrypt.hash(password, 12),
+    role: ROLES.EMPLOYEE,
   });
   return session(user);
 }
 
 export async function loginUser(rawInput: unknown) {
   const input = loginSchema.parse(rawInput);
-  const user = await prisma.user.findUnique({ where: { email: input.email } });
+  const user = await userRepository.findByEmail(input.email);
   if (!user || !(await bcrypt.compare(input.password, user.passwordHash))) {
     throw new HttpError(401, 'Invalid email or password');
   }

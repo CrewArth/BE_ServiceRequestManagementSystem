@@ -1,6 +1,6 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
-import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
+import { databaseErrorKind } from '../../repositories/database';
 
 export class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -11,13 +11,14 @@ export const asyncHandler = (handler: RequestHandler): RequestHandler => (req, r
 };
 
 export const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
+  const databaseError = databaseErrorKind(error);
   if (error instanceof ZodError) {
     res.status(400).json({ error: 'Validation failed', details: error.flatten() });
   } else if (error instanceof HttpError) {
     res.status(error.status).json({ error: error.message });
-  } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+  } else if (databaseError === 'unique') {
     res.status(409).json({ error: 'An account with this email already exists' });
-  } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+  } else if (databaseError === 'missing') {
     res.status(404).json({ error: 'Request not found' });
   } else if (error instanceof SyntaxError && 'body' in error) {
     res.status(400).json({ error: 'Invalid JSON' });

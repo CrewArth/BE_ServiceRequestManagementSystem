@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { app } from './app';
-import { prisma } from './config/database';
+import { disconnectDatabase } from './repositories/database';
 import { startOverdueScheduler } from './jobs/overdue-scheduler';
 
 const port = Number(process.env.PORT || 4000);
@@ -10,7 +10,7 @@ const stopOverdueScheduler = startOverdueScheduler();
 function shutdown() {
   stopOverdueScheduler();
   server.close(() => {
-    void prisma.$disconnect().finally(() => process.exit(0));
+    void disconnectDatabase().finally(() => process.exit(0));
   });
 }
 

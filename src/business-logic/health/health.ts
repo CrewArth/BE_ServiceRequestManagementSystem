@@ -1,10 +1,5 @@
-import { prisma } from '../../config/database';
+import { isDatabaseReachable } from '../../repositories/system.repository';
 
 export async function isDatabaseAvailable() {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    return true;
-  } catch {
-    return false;
-  }
+  return isDatabaseReachable();
 }

@@ -1,3 +1,2 @@
-import { Role } from "@prisma/client";
-
-export const ROLES = { EMPLOYEE: Role.EMPLOYEE, ADMIN: Role.ADMIN } as const;
+export const ROLES = { EMPLOYEE: 'EMPLOYEE', ADMIN: 'ADMIN' } as const;
+export type Role = typeof ROLES[keyof typeof ROLES];

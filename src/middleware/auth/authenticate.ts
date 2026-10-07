@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
-import type { Role } from "@prisma/client";
-import { prisma } from "../../config/database";
+import type { Role } from "../../constants/roles";
+import { userRepository } from "../../repositories/user.repository";
 import { InvalidTokenError, verifyToken } from "../../utils/jwt";
 import { HttpError } from "../error/error-handler";
 
@@ -17,10 +17,7 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
     const token = req.header("authorization")?.match(/^Bearer (.+)$/i)?.[1];
     if (!token) throw new HttpError(401, "Authentication required");
     const userId = verifyToken(token);
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, name: true, email: true, role: true },
-    });
+    const user = await userRepository.findPublicById(userId);
     if (!user) throw new HttpError(401, "Account not found");
     req.user = user;
     next();

@@ -1,5 +1,5 @@
-import { Category, Priority, RequestStatus } from '@prisma/client';
 import { z } from 'zod';
+import { Category, Priority, RequestStatus } from '../../constants/service-request';
 
 export const requestSchema = z.object({
   title: z.string().trim().min(3).max(120),
