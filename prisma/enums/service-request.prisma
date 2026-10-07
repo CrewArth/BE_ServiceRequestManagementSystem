@@ -1,0 +1,17 @@
+enum Category {
+  IT
+  MAINTENANCE
+  GENERAL
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RequestStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}

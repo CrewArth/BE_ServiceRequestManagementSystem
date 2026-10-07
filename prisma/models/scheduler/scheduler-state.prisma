@@ -1,0 +1,4 @@
+model SchedulerState {
+  key               String    @id
+  lastSuccessfulRun DateTime?
+}

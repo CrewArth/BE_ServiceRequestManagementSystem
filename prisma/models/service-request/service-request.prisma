@@ -1,0 +1,16 @@
+model ServiceRequest {
+  id          String        @id @default(cuid())
+  title       String        @db.VarChar(120)
+  description String        @db.VarChar(2000)
+  category    Category
+  priority    Priority
+  status      RequestStatus @default(OPEN)
+  overdue     Boolean       @default(false)
+  ownerId     String
+  owner       User          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([ownerId, createdAt])
+  @@index([status, createdAt])
+}

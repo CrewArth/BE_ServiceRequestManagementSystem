@@ -1,0 +1,69 @@
+import { RequestStatus } from '@prisma/client';
+import { prisma } from '../../config/database';
+import { invalidateSummaries } from '../../cache/request.cache';
+import { ROLES } from '../../constants/roles';
+import { HttpError } from '../../middleware/error/error-handler';
+import type { Actor } from '../../models/auth/auth.model';
+import { requestSchema, requestUpdateSchema, filterSchema, statusSchema } from '../../validation/service-request/service-request.validation';
+
+const owner = { owner: { select: { id: true, name: true, email: true } } } as const;
+
+function visibleWhere(actor: Actor) {
+  return actor.role === ROLES.ADMIN ? {} : { ownerId: actor.id };
+}
+
+export function listRequests(actor: Actor, rawFilters: unknown) {
+  const filters = filterSchema.parse(rawFilters);
+  return prisma.serviceRequest.findMany({
+    where: { ...visibleWhere(actor), ...filters }, include: owner, orderBy: { createdAt: 'desc' },
+  });
+}
+
+export async function getRequest(actor: Actor, id: string) {
+  const request = await prisma.serviceRequest.findFirst({ where: { id, ...visibleWhere(actor) }, include: owner });
+  if (!request) throw new HttpError(404, 'Request not found');
+  return request;
+}
+
+export async function createRequest(actor: Actor, rawFields: unknown) {
+  const fields = requestSchema.parse(rawFields);
+  const request = await prisma.serviceRequest.create({ data: { ...fields, ownerId: actor.id }, include: owner });
+  await invalidateSummaries(actor.id);
+  return request;
+}
+
+export async function updateRequest(actor: Actor, id: string, rawFields: unknown) {
+  const fields = requestUpdateSchema.parse(rawFields);
+  const existing = await getRequest(actor, id);
+  if (actor.role === ROLES.EMPLOYEE) {
+    const result = await prisma.serviceRequest.updateMany({
+      where: { id, ownerId: actor.id, status: RequestStatus.OPEN }, data: fields,
+    });
+    if (!result.count) throw new HttpError(403, 'Only Open requests can be edited');
+  } else {
+    await prisma.serviceRequest.update({ where: { id }, data: fields });
+  }
+  await invalidateSummaries(existing.ownerId);
+  return getRequest(actor, id);
+}
+
+export async function changeStatus(id: string, rawInput: unknown) {
+  const { status } = statusSchema.parse(rawInput);
+  const existing = await prisma.serviceRequest.findUnique({ where: { id } });
+  if (!existing) throw new HttpError(404, 'Request not found');
+  const overdue = status !== RequestStatus.RESOLVED && existing.createdAt.getTime() < Date.now() - 86_400_000;
+  const request = await prisma.serviceRequest.update({ where: { id }, data: { status, overdue }, include: owner });
+  await invalidateSummaries(existing.ownerId);
+  return request;
+}
+
+export async function deleteRequest(actor: Actor, id: string) {
+  const existing = await getRequest(actor, id);
+  if (actor.role === ROLES.EMPLOYEE) {
+    const result = await prisma.serviceRequest.deleteMany({ where: { id, ownerId: actor.id, status: RequestStatus.OPEN } });
+    if (!result.count) throw new HttpError(403, 'Only Open requests can be deleted');
+  } else {
+    await prisma.serviceRequest.delete({ where: { id } });
+  }
+  await invalidateSummaries(existing.ownerId);
+}

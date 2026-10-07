@@ -1,0 +1,23 @@
+import express from 'express';
+import cors from 'cors';
+import { jwtSecret } from './config/env';
+import { errorHandler, HttpError } from './middleware/error/error-handler';
+import { authRoutes } from './routes/auth/auth.routes';
+import { requestRoutes } from './routes/service-request/service-request.routes';
+import { dashboardRoutes } from './routes/dashboard/dashboard.routes';
+import { healthRoutes } from './routes/health/health.routes';
+import { metaRoutes } from './routes/meta/meta.routes';
+import { swaggerPage, swaggerServe } from './docs/swagger';
+
+jwtSecret();
+export const app = express();
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }));
+app.use(express.json({ limit: '32kb' }));
+app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/meta', metaRoutes);
+app.use('/api/requests', requestRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/docs', swaggerServe, swaggerPage);
+app.use((_req, _res, next) => next(new HttpError(404, 'Route not found')));
+app.use(errorHandler);
