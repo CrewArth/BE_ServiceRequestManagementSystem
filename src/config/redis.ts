@@ -1,24 +1,10 @@
 import Redis from 'ioredis';
 
-function resolveRedisUrl(): string {
-  if (process.env.REDIS_URL) {
-    const url = process.env.REDIS_URL;
-    return url.includes('upstash.io') && url.startsWith('redis://')
-      ? url.replace(/^redis:\/\//, 'rediss://')
-      : url;
-  }
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    const host = process.env.UPSTASH_REDIS_REST_URL.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-    return `rediss://default:${process.env.UPSTASH_REDIS_REST_TOKEN}@${host}:6379`;
-  }
-  return 'redis://localhost:6379';
-}
-
-const redis = new Redis(resolveRedisUrl(), {
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
   lazyConnect: true,
   enableOfflineQueue: false,
   retryStrategy: () => null,
-  connectTimeout: 5000,
+  connectTimeout: 1000,
   maxRetriesPerRequest: 0,
 });
 redis.on('error', () => undefined);
